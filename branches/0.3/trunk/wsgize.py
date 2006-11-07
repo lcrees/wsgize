@@ -110,7 +110,7 @@ class Wsgize(object):
         # Key for kargs passed through environ dictionary
         self.argkey = kw.get('args', 'wsgize.args')
         # Single URL vars key
-        self.key = kw.get('args', 'wsgi.url_vars')
+        self.key = kw.get('routing_args', 'wsgiorg.routing_args')
 
     def __call__(self, environ, start_response):
         '''Passes WSGI params to a callable and autogenrates the start_response.'''

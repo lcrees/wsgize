@@ -35,7 +35,7 @@ except:
     from distutils.core import setup
 
 setup(name='wsgize',
-      version='0.3',
+      version='0.3.1',
       description='''Utilities for "WSGIzing" Python callables.''',
       long_description=''''Utilities for "WSGIzing" Python callables including:
 

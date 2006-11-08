@@ -38,7 +38,7 @@
 '''
 
 __author__ = 'L.C. Rees (lcrees@gmail.com)'
-__revision__ = '0.3'
+__revision__ = '0.3.1'
 
 import sys
 from BaseHTTPServer import BaseHTTPRequestHandler as _bhrh

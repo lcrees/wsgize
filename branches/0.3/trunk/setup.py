@@ -35,22 +35,20 @@ except:
     from distutils.core import setup
 
 setup(name='wsgize',
-      version='0.3.1',
-      description='''Utilities for "WSGIzing" Python callables.''',
-      long_description=''''Utilities for "WSGIzing" Python callables including:
+      version='0.4',
+      description='''Middleware for "WSGIzing" Python callables.''',
+      long_description=''''Middleware for "WSGIzing" Python callables including:
 
-    * An WSGI-compliant HTTP response generator
-    * A wrapper and decorator for making non-WSGI Python callables
-      (functions, classes overriding __call__, methods) into WSGI callables
-    * A secondary WSGI dispatcher.
-    * A decorator for autogenerating HTTP response codes, headers, and
-      compliant iterators for WSGI callables
-''',
+* An WSGI-compliant HTTP response generator
+* A wrapper and decorator for making non-WSGI Python callables
+  (functions, classes overriding __call__, methods) into WSGI callables
+* A secondary WSGI dispatcher.
+* A decorator for autogenerating HTTP response codes, headers, and
+  compliant iterators for WSGI callables''',
       author='L. C. Rees',
       author_email='lcrees@gmail.com',
       license='BSD',
-      py_modules=['wsgize'],
-      packages = [],
+      packages = ['wsgize'],
       zip_safe = True,
       keywords='WSGI dispatch middleware web HTTP decorators',
       classifiers=['Development Status :: 4 - Beta',

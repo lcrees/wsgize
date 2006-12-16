@@ -37,8 +37,8 @@
       compliant iterators for WSGI callables
 '''
 
-__author__ = 'L.C. Rees (lcrees@gmail.com)'
-__revision__ = '0.3.1'
+__author__ = 'L.C. Rees (lcrees-at-gmail.com)'
+__revision__ = '0.4'
 
 import sys
 from BaseHTTPServer import BaseHTTPRequestHandler as _bhrh

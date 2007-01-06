@@ -37,20 +37,30 @@ except:
 setup(name='wsgize',
       version='0.4',
       description='''WSGI without the WSGI''',
-      long_description=''''Middleware for WSGI-enabling Python callables including:
+      long_description=''''Middleware for WSGI-enabling Python callables
+including:
 
-* An WSGI-compliant HTTP response generator
-* A wrapper and decorator for making non-WSGI Python functions, callable
-classes or methods into WSGI applications
-* A secondary WSGI dispatcher.
-* A decorator for autogenerating HTTP response codes, headers, and
-  compliant iterators for WSGI applications
+* Middleware that makes non-WSGI Python functions, callable classes, or
+methods into WSGI applications
+* Middleware that automatically handles generating WSGI-compliant HTTP
+response codes, headers, and compliant iterators
+* An HTTP response generator
+* A secondary WSGI dispatcher
 
-Simple example:
+Examples:
 
+# Automatically handle HTTP response, header, and iterator generation
 
+@wsgize()
+def app(environ, start_response):
+    return 'Hello World'
 
-  ''',
+# Make a normal Python function into a WSGI application
+
+@wsgiwrap()
+def app(name):
+    return 'Hello ' % name
+''',
       author='L. C. Rees',
       author_email='lcrees@gmail.com',
       license='BSD',
@@ -58,12 +68,13 @@ Simple example:
       zip_safe = True,
       keywords='WSGI dispatch middleware web HTTP decorators',
       classifiers=['Development Status :: 4 - Beta',
-                    'Environment :: Web Environment',
-                    'Intended Audience :: Developers', 
-                    'License :: OSI Approved :: BSD License',
-                    'Natural Language :: English',
-                    'Operating System :: OS Independent',
-                    'Programming Language :: Python',
-                    'Topic :: Internet :: WWW/HTTP',
-                    'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
-                    'Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware'])
+                   'Environment :: Web Environment',
+                   'Intended Audience :: Developers', 
+                   'License :: OSI Approved :: BSD License',
+                   'Natural Language :: English',
+                   'Operating System :: OS Independent',
+                   'Programming Language :: Python',
+                   'Topic :: Internet :: WWW/HTTP',
+                   'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+                   'Topic :: Internet :: WWW/HTTP :: WSGI',
+                   'Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware'])

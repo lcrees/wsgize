@@ -33,9 +33,64 @@ from wsgize import *
 
 class TestWsize(unittest.TestCase):
 
-    def func(self):
-        pass
+    def test_wsgize_default(self):
+        def sr(start, hdr, exc=None): pass
+        @wsgize()
+        def app(environ, start_response):
+            return 'Test'
+        self.assertEqual(app({}, sr), ['Test'])
 
+    def test_wsgize_custom(self):
+        def sr(start, hdr, exc=None): pass
+        @wsgize(response=404, mime='text/plain')
+        def app(environ, start_response):
+            return 'Test'
+        self.assertEqual(app({}, sr), ['Test'])
+
+    def test_wsgiwrap_default(self):
+        def sr(start, hdr, exc=None): pass
+        @wsgiwrap()
+        def app(*arg, **kw):
+            return '%s %s%s' % (arg[0], kw['kw'], arg[1])
+        env = {'wsgiorg.routing_args':(('Hello', '!'), {'kw':'world'})}
+        self.assertEqual(app(env, sr), ['Hello world!'])
+
+    def test_wsgiwrap_both(self):
+        def sr(start, hdr, exc=None): pass
+        @wsgiwrap(response=404, mime='text/plain')
+        def app(*arg, **kw):
+            return '%s %s%s' % (arg[0], kw['kw'], arg[1])
+        env = {'wsgiorg.routing_args':(('Hello', '!'), {'kw':'world'})}
+        self.assertEqual(app(env, sr), ['Hello world!'])
+
+    def test_wsgiwrap_args(self):
+        def sr(start, hdr, exc=None): pass
+        @wsgiwrap(response=404, mime='text/plain')
+        def app(*arg):
+            return '%s world%s' % (arg[0], arg[1])
+        env = {'wsgiorg.routing_args':(('Hello', '!'), {})}
+        self.assertEqual(app(env, sr), ['Hello world!'])        
+            
+    def test_wsgiwrap_kwargs(self):
+        def sr(start, hdr, exc=None): pass
+        @wsgiwrap(response=404, mime='text/plain')
+        def app(**kw):
+            return 'Hello %s!' % kw['kw']
+        env = {'wsgiorg.routing_args':((), {'kw':'world'})}
+        self.assertEqual(app(env, sr), ['Hello world!'])
+
+    def test_route(self):
+        def sr(start, hdr, exc=None): pass
+        @route('next')        
+        @wsgiwrap()
+        def app2(**kw):
+            return 'Hello %s!' % kw['kw']
+        @wsgize()
+        def app1(env, start):
+            env['wsgiorg.routing_args'] = ((), {'kw':'world'})
+            env['wsgize.callable'] = 'next'
+            return WsgiRoute()(env, start)            
+        self.assertEqual(app1({}, sr), ['Hello world!']) 
 
 
 if __name__ == '__main__': unittest.main()    

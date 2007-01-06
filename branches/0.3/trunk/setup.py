@@ -36,15 +36,21 @@ except:
 
 setup(name='wsgize',
       version='0.4',
-      description='''Middleware for "WSGIzing" Python callables.''',
-      long_description=''''Middleware for "WSGIzing" Python callables including:
+      description='''WSGI without the WSGI''',
+      long_description=''''Middleware for WSGI-enabling Python callables including:
 
 * An WSGI-compliant HTTP response generator
-* A wrapper and decorator for making non-WSGI Python callables
-  (functions, classes overriding __call__, methods) into WSGI callables
+* A wrapper and decorator for making non-WSGI Python functions, callable
+classes or methods into WSGI applications
 * A secondary WSGI dispatcher.
 * A decorator for autogenerating HTTP response codes, headers, and
-  compliant iterators for WSGI callables''',
+  compliant iterators for WSGI applications
+
+Simple example:
+
+
+
+  ''',
       author='L. C. Rees',
       author_email='lcrees@gmail.com',
       license='BSD',
@@ -53,8 +59,11 @@ setup(name='wsgize',
       keywords='WSGI dispatch middleware web HTTP decorators',
       classifiers=['Development Status :: 4 - Beta',
                     'Environment :: Web Environment',
+                    'Intended Audience :: Developers', 
                     'License :: OSI Approved :: BSD License',
                     'Natural Language :: English',
                     'Operating System :: OS Independent',
                     'Programming Language :: Python',
+                    'Topic :: Internet :: WWW/HTTP',
+                    'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
                     'Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware'])

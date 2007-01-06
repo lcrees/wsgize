@@ -27,14 +27,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-'''Utilities for "WSGIzing" Python callables including:
+'''Middleware for WSGI-enabling Python callables including:
 
-    * An WSGI-compliant HTTP response generator
-    * A wrapper and decorator for making non-WSGI Python callables
-      (functions, classes overriding __call__) into WSGI callables
-    * A secondary WSGI dispatcher.
-    * A decorator for autogenerating HTTP response codes, headers, and
-      compliant iterators for WSGI callables
+* An WSGI-compliant HTTP response generator
+* A wrapper and decorator for making non-WSGI Python functions, callable
+classes or methods into WSGI callables
+* A secondary WSGI dispatcher.
+* A decorator for autogenerating HTTP response codes, headers, and
+  compliant iterators for WSGI callables
 '''
 
 __author__ = 'L.C. Rees (lcrees-at-gmail.com)'
@@ -44,13 +44,13 @@ import sys
 from BaseHTTPServer import BaseHTTPRequestHandler as _bhrh
 
 __all__ = ['response', 'Wsgize', 'WsgiWrap', 'WsgiRoute', 'wsgize',
-    'wsgiwrap', 'route']
+    'wsgiwrap', 'route', 'register']
 
 # Secondary dispatcher routing table
 routes = dict()
 
 def register(name, application):
-    '''Registers a name and application.
+    '''Registers a mapping of a name to an WSGI application.
 
     @param pattern URL pattern
     @param application WSGI application
@@ -65,11 +65,11 @@ def response(code):
     return '%i %s' % (code, _bhrh.responses[code][0])
 
 def route(name):
-    '''Callable decorator for registering secondary dispatch.'''
+    '''Callable decorator for an application with the secondary dispatcher.'''
     def decorator(application):
         register(name, application)
         return application
-    return decorator  
+    return decorator
 
 def wsgize(**kw):
     '''Decorator for Wsgize.
@@ -93,13 +93,13 @@ def wsgiwrap(**kw):
 class Wsgize(object):
 
     '''Autogenerates WSGI start_response callables, headers, and iterators for
-    a WSGI callables.
+    a WSGI application.
     '''    
 
     def __init__(self, app, **kw):
         self.application = app
         # Get HTTP response
-        self.start_response = response(kw.get('response', 200))
+        self.response = response(kw.get('response', 200))
         # Generate headers
         exheaders = kw.get('headers', dict())
         headers = list((key, exheaders[key]) for key in exheaders)
@@ -115,17 +115,16 @@ class Wsgize(object):
     def __call__(self, environ, start_response):
         '''Passes WSGI params to a callable and autogenrates the start_response.'''
         data = self.application(environ, start_response)
-        start_response(self.start_response, self.headers, self.exc_info)
-        if hasattr(data, '__iter__'):
-            # Wrap strings in non-string iterator
-            if isinstance(data, basestring): data = [data]
-            return data
-        raise TypeError('Data returned by callable must be iterable or string.')        
+        start_response(self.response, self.headers, self.exc_info)
+        # Wrap strings in non-string iterator, ensuring its a normal ASCII string
+        if isinstance(data, basestring): data = [str(data)]
+        if hasattr(data, '__iter__'): return data
+        raise TypeError('Data returned by callable must be iterable.')        
 
 
 class WsgiWrap(Wsgize):
 
-    '''Makes arbitrary Python callables WSGI callables.'''     
+    '''Makes arbitrary Python callables WSGI applications.'''     
 
     def __call__(self, environ, start_response):
         '''Makes a Python callable a WSGI callable.'''
@@ -143,10 +142,12 @@ class WsgiWrap(Wsgize):
         elif args:
             data = self.application(*args)
         elif kw:
-            data = self.application(**kw)
-        start_response(self.start_response, self.headers, self.exc_info)
-        if isinstance(data, basestring): data = [data]
-        return data
+            data = self.application(**kw)        
+        start_response(self.response, self.headers, self.exc_info)
+        # Wrap strings in non-string iterator, ensuring its a normal ASCII string
+        if isinstance(data, basestring): data = [str(data)]
+        if hasattr(data, '__iter__'): return data
+        raise TypeError('Data returned by callable must be iterable.')
 
 
 class WsgiRoute(object):
@@ -165,49 +166,29 @@ class WsgiRoute(object):
         self.modpath = kw.get('modpath', '')
         # Get key for callable
         self.key = kw.get('key', 'wsgize.callable')
-        syspaths = kw.get('syspaths', None)
-        # Add any additional sys paths
-        if syspaths is not None:
-            for path in syspaths: sys.path.append(path)
 
     def __call__(self, environ, start_response):
         '''Passes WSGI params to a callable based on a keyword.'''
         callback = self.lookup(environ[self.key])
-        return callback(environ, start_response)           
+        return callback(environ, start_response)
 
-    def getmodfunc(self, callback):
-        '''Breaks a callable name out from a module name.
+    def getapp(self, app):
+        '''Loads a callable based on its name
 
-        @param callback Name of a callback        
-        '''
+        @param app An WSGI application's name'''
         # Add shortcut to module if present
-        if self.modpath != '': callback = '.'.join([self.modpath, callback])
-        dot = callback.rindex('.')
-        return callback[:dot], callback[dot+1:]
+        if self.modpath != '': app = '.'.join([self.modpath, app])
+        dot = app.rindex('.')
+        # Import module
+        return getattr(__import__(app[:dot], '', '', ['']), app[dot+1:])
 
     def lookup(self, kw):
-        '''Fetches a callable based on keyword.
+        '''Fetches an application based on keyword.
 
-        kw Keyword
+        @param kw Keyword
         '''
         callback = self.table[kw]
         if hasattr(callback, '__call__'):
             return callback
         else:
-            return self.getcallback(callback)
-        raise ImportError()    
-
-    def getcallback(self, callback):
-        '''Loads a callable from system path.
-
-        callback A callback's name'''        
-        mod_name, func_name = self.getmodfunc(callback)
-        try:
-            return getattr(__import__(mod_name, '', '', ['']), func_name)
-        except ImportError, error:
-            raise ImportError(
-                'Could not import %s. Error was: %s' % (mod_name, str(error)))
-        except AttributeError, error:
-            raise AttributeError(
-                'Tried %s in module %s. Error was: %s' % (func_name,
-                 mod_name, str(error)))
+            return self.getapp(callback)

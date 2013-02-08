@@ -5,7 +5,7 @@ Middleware for WSGI-enabling Python callables including:
 * An HTTP response generator
 * A secondary WSGI dispatcher
 
-Examples:
+Examples::
 
     # Automatically handle HTTP response, header, and iterator generation
 
